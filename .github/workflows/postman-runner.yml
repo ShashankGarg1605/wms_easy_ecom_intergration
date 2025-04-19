@@ -1,16 +1,16 @@
-name: Run Postman Tests
+name: Run Postman Collection
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch:  # allows manual trigger
+    branches:
+      - main
 
 jobs:
   run-postman-collection:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repository
+    - name: Checkout code
       uses: actions/checkout@v3
 
     - name: Install Node.js
@@ -24,12 +24,12 @@ jobs:
     - name: Run Postman Collection
       run: |
         newman run "wms_easy_ecom_intergration.postman_collection.json" \
-          -e "wms_staging.postman_environment.json" \
-          -r cli,html \
-          --reporter-html-export "wms_report_$(date +'%Y-%m-%d_%H-%M-%S').html"
-    
-    - name: Upload Report
+        -e "wms_staging.postman_environment.json" \
+        --reporters cli,junit \
+        --reporter-junit-export results.xml
+
+    - name: Upload Test Report
       uses: actions/upload-artifact@v3
       with:
         name: postman-report
-        path: "wms_report_*.html"
+        path: results.xml
