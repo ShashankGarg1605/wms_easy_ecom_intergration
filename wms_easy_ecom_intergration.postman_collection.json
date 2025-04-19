@@ -31,19 +31,26 @@
 							"pm.environment.set(\"refreshToken\", jsonData.refreshToken);\r",
 							"pm.environment.set(\"tenant\", jsonData.tenant);\r",
 							"\r",
-							"const validateTenantMatch = pm.require('@martian-zodiac-532719/validate_tenant_match');\r",
+							"// 🔁 Reusable Snippet: Validate tenant header vs response\r",
+							"(function validateTenantMatch() {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    const responseTenant = jsonData.tenant;\r",
 							"\r",
+							"    const requestTenantHeader = pm.request.headers\r",
+							"        .find(header => header.key.toLowerCase() === 'tenant')\r",
+							"        ?.value;\r",
+							"\r",
+							"    pm.test(\"Tenant in response matches request header\", function () {\r",
+							"        pm.expect(responseTenant, \"Not logged into requested tenant\").to.eql(requestTenantHeader);\r",
+							"    });\r",
+							"})();\r",
 							"\r",
 							"\r",
 							"\r",
 							""
 						],
 						"type": "text/javascript",
-						"packages": {
-							"@martian-zodiac-532719/validate_tenant_match": {
-								"id": "01964a09-4058-709b-94ef-fc6dfa71a366"
-							}
-						}
+						"packages": {}
 					}
 				},
 				{
@@ -114,18 +121,10 @@
 							"    pm.expect(jsonData.data).to.have.property(\"token\");\r",
 							"    pm.expect(jsonData.data.token).to.have.property(\"jwt_token\");\r",
 							"    pm.expect(jsonData.data.token).to.have.property(\"expires_in\");\r",
-							"});\r",
-							"\r",
-							"// ✅ Check tenant from request header matches environment\r",
-							"\r",
-							"const validateTenantMatch = pm.require('@martian-zodiac-532719/validate_tenant_match');"
+							"});"
 						],
 						"type": "text/javascript",
-						"packages": {
-							"@martian-zodiac-532719/validate_tenant_match": {
-								"id": "01964a09-4058-709b-94ef-fc6dfa71a366"
-							}
-						}
+						"packages": {}
 					}
 				}
 			],
