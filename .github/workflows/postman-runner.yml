@@ -1,0 +1,35 @@
+name: Run Postman Tests
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # allows manual trigger
+
+jobs:
+  run-postman-collection:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Install Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install Newman
+      run: npm install -g newman
+
+    - name: Run Postman Collection
+      run: |
+        newman run "wms_easy_ecom_intergration.postman_collection.json" \
+          -e "wms_staging.postman_environment.json" \
+          -r cli,html \
+          --reporter-html-export "wms_report_$(date +'%Y-%m-%d_%H-%M-%S').html"
+    
+    - name: Upload Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: postman-report
+        path: "wms_report_*.html"
