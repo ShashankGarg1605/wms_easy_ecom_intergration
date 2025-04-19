@@ -13,7 +13,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Install Node.js
+    - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '18'
@@ -28,7 +28,7 @@ jobs:
         --reporters cli,junit \
         --reporter-junit-export results.xml
 
-    - name: Upload Test Report
+    - name: Upload Newman Report
       uses: actions/upload-artifact@v3
       with:
         name: postman-report
