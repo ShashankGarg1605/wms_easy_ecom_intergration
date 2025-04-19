@@ -1,0 +1,211 @@
+{
+	"info": {
+		"_postman_id": "6d480288-38d3-4cc0-9fc8-fcdb6880fb5a",
+		"name": "wms_easy_ecom_intergration",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "834033",
+		"_collection_link": "https://martian-zodiac-532719.postman.co/workspace/EasyEcom-WMS-Integration~dde1ad63-9fa1-499b-b5ba-78ab6ab26cae/collection/834033-6d480288-38d3-4cc0-9fc8-fcdb6880fb5a?action=share&source=collection_link&creator=834033"
+	},
+	"item": [
+		{
+			"name": "WMS_Auth_API",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Token is present\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.token).to.not.be.undefined;\r",
+							"    pm.environment.set(\"authToken\", jsonData.token);\r",
+							"});\r",
+							"\r",
+							"const jsonData = pm.response.json();\r",
+							"\r",
+							"pm.environment.set(\"authToken\", jsonData.token);\r",
+							"pm.environment.set(\"refreshToken\", jsonData.refreshToken);\r",
+							"pm.environment.set(\"tenant\", jsonData.tenant);\r",
+							"\r",
+							"const validateTenantMatch = pm.require('@martian-zodiac-532719/validate_tenant_match');\r",
+							"\r",
+							"\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {
+							"@martian-zodiac-532719/validate_tenant_match": {
+								"id": "01964a09-4058-709b-94ef-fc6dfa71a366"
+							}
+						}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "tenant",
+						"value": "tenant_31"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/auth",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "EasyEcom_Auth_Via_WMS",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"\r",
+							"const jsonData = pm.response.json();\r",
+							"\r",
+							"// 💾 Save EasyEcom JWT token for chaining\r",
+							"if (jsonData.data && jsonData.data.token && jsonData.data.token.jwt_token) {\r",
+							"    pm.environment.set(\"easyecomToken\", jsonData.data.token.jwt_token);\r",
+							"    console.log(\"Saved EasyEcom token\");\r",
+							"} else {\r",
+							"    console.warn(\"EasyEcom token not found in response.\");\r",
+							"}\r",
+							"\r",
+							"// ✅ Validate structure\r",
+							"pm.test(\"Response has expected structure\", function () {\r",
+							"    pm.expect(jsonData.data).to.have.property(\"userName\");\r",
+							"    pm.expect(jsonData.data).to.have.property(\"token\");\r",
+							"    pm.expect(jsonData.data.token).to.have.property(\"jwt_token\");\r",
+							"    pm.expect(jsonData.data.token).to.have.property(\"expires_in\");\r",
+							"});\r",
+							"\r",
+							"// ✅ Check tenant from request header matches environment\r",
+							"\r",
+							"const validateTenantMatch = pm.require('@martian-zodiac-532719/validate_tenant_match');"
+						],
+						"type": "text/javascript",
+						"packages": {
+							"@martian-zodiac-532719/validate_tenant_match": {
+								"id": "01964a09-4058-709b-94ef-fc6dfa71a366"
+							}
+						}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{authToken}}",
+						"type": "text"
+					},
+					{
+						"key": "source",
+						"value": "2",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "ID",
+						"value": "642",
+						"type": "text"
+					},
+					{
+						"key": "tenant",
+						"value": "{{tenant}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/easyecom/auth?warehouseId=22",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"easyecom",
+						"auth"
+					],
+					"query": [
+						{
+							"key": "warehouseId",
+							"value": "22"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "password",
+			"value": "Powerlook@123",
+			"type": "default"
+		},
+		{
+			"key": "username",
+			"value": "1234567890",
+			"type": "default"
+		}
+	]
+}
