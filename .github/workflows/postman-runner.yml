@@ -39,8 +39,16 @@ jobs:
           results.xml
           postman-report.html
 
-    - name: Generate Email Content
-      run: node parse-summary.js
+    - name: Generate Email Content and Status Emoji
+      id: generate-summary
+      run: |
+        node parse-summary.js
+        FAILURES=$(grep -oP 'failures="\K[0-9]+' results.xml)
+        if [ "$FAILURES" -gt 0 ]; then
+          echo "emoji=❌" >> $GITHUB_OUTPUT
+        else
+          echo "emoji=✅" >> $GITHUB_OUTPUT
+        fi
       env:
         SUMMARY_OUTPUT_FILE: email-body.txt
 
@@ -57,7 +65,7 @@ jobs:
         server_port: 465
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
-        subject: "Automation Test Report | WMS | ${{ steps.datetime.outputs.current_time }}"
+        subject: "${{ steps.generate-summary.outputs.emoji }} Automation Test Report | WMS | ${{ steps.datetime.outputs.current_time }}"
         to: shashank.garg@prozo.com
         from: Prozo WMS Bot <${{ secrets.EMAIL_USERNAME }}>
         body: file://email-body.txt
