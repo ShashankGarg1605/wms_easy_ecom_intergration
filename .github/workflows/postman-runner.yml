@@ -25,7 +25,7 @@ jobs:
 
     - name: Run Postman Collection
       run: |
-        newman run "wms_easy_ecom_integration.postman_collection.json" \
+        newman run "wms_easy_ecom_intergration.postman_collection.json" \
         -e "wms_staging.postman_environment.json" \
         --reporters cli,junit,html \
         --reporter-junit-export results.xml \
