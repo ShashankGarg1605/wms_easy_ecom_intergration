@@ -1,19 +1,33 @@
 const fs = require('fs');
-const xml2js = require('xml2js');
+const path = require('path');
 
-const xml = fs.readFileSync('results.xml', 'utf8');
+// Read the results.xml file
+const xmlData = fs.readFileSync('results.xml', 'utf8');
 
-xml2js.parseString(xml, (err, result) => {
-  if (err) throw err;
+// Extract basic statistics using regex
+const getAttribute = (xml, attr) => {
+  const match = xml.match(new RegExp(`testsuite.*?${attr}="(\\d+)"`));
+  return match ? match[1] : '0';
+};
 
-  const testsuite = result.testsuites.testsuite[0]['$'];
-  const htmlBody = `
-    <h2>Postman Test Summary</h2>
-    <p><strong>Collection:</strong> wms_easy_ecom_intergration</p>
-    <p><strong>Total Requests:</strong> ${testsuite.tests}</p>
-    <p><strong>Tests Passed:</strong> ${testsuite.tests - testsuite.failures}</p>
-    <p><strong>Tests Failed:</strong> ${testsuite.failures}</p>
-  `;
+const totalTests = getAttribute(xmlData, 'tests');
+const failedTests = getAttribute(xmlData, 'failures');
+const passedTests = parseInt(totalTests) - parseInt(failedTests);
 
-  fs.writeFileSync(process.env.SUMMARY_OUTPUT_FILE || 'email-body.html', htmlBody);
-});
+// Generate HTML email body
+const htmlBody = `
+<html>
+<body>
+  <h2>Postman Test Summary</h2>
+  <p><strong>Collection:</strong> wms_easy_ecom_intergration</p>
+  <p><strong>Environment:</strong> wms_staging</p>
+  <p><strong>Total Requests:</strong> ${totalTests}</p>
+  <p><strong>Tests Passed:</strong> ${passedTests}</p>
+  <p><strong>Tests Failed:</strong> ${failedTests}</p>
+  <p><strong>Run Date:</strong> ${new Date().toLocaleString()}</p>
+</body>
+</html>
+`;
+
+// Write to output file
+fs.writeFileSync(process.env.SUMMARY_OUTPUT_FILE || 'email-body.html', htmlBody);
