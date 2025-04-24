@@ -25,35 +25,24 @@ jobs:
 
     - name: Run Postman Collection
       run: |
-        newman run "wms_easy_ecom_intergration.postman_collection.json" \
+        newman run "wms_easy_ecom_integration.postman_collection.json" \
         -e "wms_staging.postman_environment.json" \
         --reporters cli,junit,html \
         --reporter-junit-export results.xml \
         --reporter-html-export postman-report.html
 
-    - name: Upload JUnit Report
+    - name: Upload Reports
       uses: actions/upload-artifact@v4
       with:
-        name: junit-report
-        path: results.xml
+        name: postman-reports
+        path: |
+          results.xml
+          postman-report.html
 
-    - name: Upload HTML Report
-      uses: actions/upload-artifact@v4
-      with:
-        name: postman-html-report
-        path: postman-report.html
-
-    - name: Parse JUnit XML and Generate Email Body
+    - name: Generate Email Content
       run: node parse-summary.js
       env:
-        SUMMARY_OUTPUT_FILE: email-body.html
-
-    - name: Output Email Summary as Step Output
-      id: email-summary
-      run: |
-        echo "body<<EOF" >> $GITHUB_OUTPUT
-        cat email-body.html >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+        SUMMARY_OUTPUT_FILE: email-body.txt
 
     - name: Send Email with Report
       uses: dawidd6/action-send-mail@v3
@@ -65,6 +54,5 @@ jobs:
         subject: "Postman Test Report - ${{ github.repository }}"
         to: shashank.garg@prozo.com
         from: Prozo WMS Bot <${{ secrets.EMAIL_USERNAME }}>
-        content_type: text/html
-        body: ${{ steps.email-summary.outputs.body }}
+        body: file://email-body.txt
         attachments: postman-report.html
