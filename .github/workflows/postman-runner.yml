@@ -25,7 +25,7 @@ jobs:
 
     - name: Run Postman Collection
       run: |
-        newman run "wms_easy_ecom_intergration.postman_collection.json" \
+        newman run "wms_easy_ecom_integration.postman_collection.json" \
         -e "wms_staging.postman_environment.json" \
         --reporters cli,junit,html \
         --reporter-junit-export results.xml \
@@ -44,6 +44,12 @@ jobs:
       env:
         SUMMARY_OUTPUT_FILE: email-body.txt
 
+    - name: Get current IST datetime
+      id: datetime
+      run: |
+        IST_TIME=$(TZ='Asia/Kolkata' date '+%d-%m-%Y %H:%M:%S IST')
+        echo "current_time=${IST_TIME}" >> $GITHUB_OUTPUT
+
     - name: Send Email with Report
       uses: dawidd6/action-send-mail@v3
       with:
@@ -51,7 +57,7 @@ jobs:
         server_port: 465
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
-        subject: "Postman Test Report - ${{ github.repository }}"
+        subject: "Automation Test Report | WMS | ${{ steps.datetime.outputs.current_time }}"
         to: shashank.garg@prozo.com
         from: Prozo WMS Bot <${{ secrets.EMAIL_USERNAME }}>
         body: file://email-body.txt
