@@ -18,22 +18,24 @@ jobs:
       with:
         node-version: '18'
 
-    - name: Install Newman and Reporters
+    - name: Install Newman and HTML Reporter
       run: |
         npm install -g newman
         npm install -g newman-reporter-html
 
-    - name: Run Postman Collection and Export Reports
+    - name: Run Postman Collection
       run: |
         newman run "wms_easy_ecom_intergration.postman_collection.json" \
-          -e "wms_staging.postman_environment.json" \
-          --reporters cli,json,html \
-          --reporter-json-export results.json \
-          --reporter-html-export postman-report.html
+        -e "wms_staging.postman_environment.json" \
+        --reporters cli,junit,html \
+        --reporter-junit-export results.xml \
+        --reporter-html-export postman-report.html
 
-    - name: Create Email Summary Body
-      run: |
-        node parse-summary.js
+    - name: Upload JUnit Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: junit-report
+        path: results.xml
 
     - name: Upload HTML Report
       uses: actions/upload-artifact@v4
@@ -41,16 +43,28 @@ jobs:
         name: postman-html-report
         path: postman-report.html
 
-    - name: Send Email with Report Summary and Attachment
+    - name: Parse JUnit XML and Generate Email Body
+      run: node .github/scripts/parse-summary.js
+      env:
+        SUMMARY_OUTPUT_FILE: email-body.html
+
+    - name: Send Email with Report
       uses: dawidd6/action-send-mail@v3
       with:
         server_address: smtp.gmail.com
         server_port: 465
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
-        subject: Postman Test Report
+        subject: "Postman Test Report"
         to: shashank.garg@prozo.com
         from: Prozo WMS Bot <${{ secrets.EMAIL_USERNAME }}>
-        content_type: html
-        body: file://email-body.html
+        content_type: text/html
+        body: ${{ steps.email-summary.outputs.body }}
         attachments: postman-report.html
+
+    - name: Output Email Summary as Step Output
+      id: email-summary
+      run: |
+        echo "body<<EOF" >> $GITHUB_OUTPUT
+        cat email-body.html >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
