@@ -44,7 +44,7 @@ jobs:
         path: postman-report.html
 
     - name: Parse JUnit XML and Generate Email Body
-      run: node .github/scripts/parse-summary.js
+      run: node parse-summary.js
       env:
         SUMMARY_OUTPUT_FILE: email-body.html
 
