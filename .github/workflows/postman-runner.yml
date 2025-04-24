@@ -42,3 +42,16 @@ jobs:
       with:
         name: postman-html-report
         path: postman-report.html
+
+    - name: Send email with HTML report
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: ${{ secrets.SMTP_SERVER }}
+        server_port: ${{ secrets.SMTP_PORT }}
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: "Postman Run Report - ${{ github.repository }}"
+        to: shashank.garg@prozo.com
+        from: Postman CI <${{ secrets.EMAIL_USERNAME }}>
+        body: "Hi Shashank,\n\nPlease find attached the latest HTML report from your Postman test run.\n\nRegards,\nGitHub Actions"
+        attachments: postman-report.html
